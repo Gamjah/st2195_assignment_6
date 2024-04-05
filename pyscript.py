@@ -1,4 +1,5 @@
 import pandas as pd
+from nltk.corpus import stopwords
 
 ''' Question 1 - Load and merge the datasets keeping all information available for the dates in which there is a measurement in “fx.csv”. [1 point]'''
 
@@ -79,9 +80,54 @@ print(df_1[df_1['news'] == 'good_news'])
  b. “bad_indicators” – with the 20 most common words (excluding articles, prepositions and similar connectors) associated with entries wherein “bad_news” is equal to 1;
 '''
 
-print(df_1['contents'].isnull().sum())
+# Remove entries with NA values in the 'contents' column
 df_1_no_na_contents = df_1.dropna(subset=['contents'])
 print(df_1_no_na_contents.head(30))
 
+# Filter the DataFrame to include only rows where 'news' is 'good_news'
 df_1_no_na_contents_good_news = df_1_no_na_contents[df_1_no_na_contents['news'] == 'good_news']
 print(df_1_no_na_contents_good_news.head(30))
+
+# Define the words to exclude
+stop_words = set(stopwords.words('english'))
+stop_words.add("–")
+stop_words.add("also")
+stop_words.add("de")
+
+# Convert 'contents' to lowercase and split the text into words
+words = df_1_no_na_contents_good_news['contents'].str.lower().str.split(expand=True).stack()
+
+# Filter out the stop words
+filtered_words = words[~words.isin(stop_words)]
+
+# Count the frequency of the remaining words
+word_freq = filtered_words.value_counts()
+
+# Display the 20 most common words
+print(word_freq.head(20))
+word_freq.head(20).to_csv('good_indicators.csv')
+
+## Now for the bad_news
+
+# Filter the DataFrame to include only rows where 'news' is 'bad_news'
+df_1_no_na_contents_bad_news = df_1_no_na_contents[df_1_no_na_contents['news'] == 'bad_news']
+print(df_1_no_na_contents_bad_news.head(30))
+
+# Define the words to exclude
+stop_words = set(stopwords.words('english'))
+stop_words.add("–")
+stop_words.add("also")
+stop_words.add("de")
+
+# Convert 'contents' to lowercase and split the text into words
+words = df_1_no_na_contents_bad_news['contents'].str.lower().str.split(expand=True).stack()
+
+# Filter out the stop words
+filtered_words = words[~words.isin(stop_words)]
+
+# Count the frequency of the remaining words
+word_freq = filtered_words.value_counts()
+
+# Display the 20 most common words
+print(word_freq.head(20))
+word_freq.head(20).to_csv('bad_indicators.csv')
